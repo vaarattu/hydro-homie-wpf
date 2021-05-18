@@ -1,0 +1,80 @@
+﻿<adonisControls:AdonisWindow x:Class="HydroHomie.MainWindow"
+                             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                             xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
+                             xmlns:adonisControls="clr-namespace:AdonisUI.Controls;assembly=AdonisUI"
+                             xmlns:tb="http://www.hardcodet.net/taskbar" 
+                             mc:Ignorable="d"
+                             Height="400" 
+                             Width="300"
+                             TitleBarBackground="{StaticResource BlueGradientBrush}"
+                             Icon="Water.ico"
+                             Title="Hydro Homie" 
+                             Closed="AdonisWindow_Closed" 
+                             StateChanged="AdonisWindow_StateChanged"
+                             WindowStartupLocation="CenterScreen" 
+                             ResizeMode="CanMinimize">
+
+    <Grid>
+        
+        <tb:TaskbarIcon x:Name="TrayIcon" IconSource="Water.ico" TrayLeftMouseDown="TrayIcon_TrayLeftMouseDown">
+            <!--
+            <tb:TaskbarIcon.TrayToolTip>
+                <Border Background="White" BorderBrush="Orange" BorderThickness="2" CornerRadius="4" Opacity="0.8" Width="160" Height="40">
+                    <TextBlock Text="hello world" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+            </tb:TaskbarIcon.TrayToolTip>
+            -->
+            <tb:TaskbarIcon.ContextMenu>
+                <ContextMenu x:Name="RightClickMenu" Background="LightCoral">
+                    <MenuItem x:Name="ContextMenuEnableNotifications" Header="Enable notifications" Click="MenuItem_Click"/>
+                    <Separator />
+                    <MenuItem Header="Settings" Click="MenuItem_Click"/>
+                    <Separator />
+                    <MenuItem Header="Exit" Click="MenuItem_Click"/>
+                </ContextMenu>
+            </tb:TaskbarIcon.ContextMenu>
+            
+        </tb:TaskbarIcon>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <GroupBox Header="Options" Margin="8" Grid.Row="0">
+                <StackPanel Orientation="Vertical" Margin="0 0">
+                    <CheckBox Content="Enable notifications" Height="30" x:Name="EnableNotificationsCheckBox" Checked="EnableNotificationsCheckBox_Checked" Unchecked="EnableNotificationsCheckBox_Checked"/>
+                    <CheckBox Content="Start with windows" Height="30" x:Name="EnableStartupCheckBox" Checked="EnableStartupCheckBox_Checked" Unchecked="EnableStartupCheckBox_Checked"/>
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox Header="Frequency (in minutes)" Margin="8" Grid.Row="1">
+                <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Margin="0 8">
+                        <Slider Width="200" Minimum="1" Maximum="120" TickFrequency="1" IsSnapToTickEnabled="True" TickPlacement="BottomRight" x:Name="FrequencySlider" ValueChanged="FrequencySlider_ValueChanged"/>
+                        <TextBox Width="40" Margin="8 0" x:Name="FrequencyTextBox" TextChanged="FrequencyTextBox_TextChanged"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0 8 0 4">
+                        <TextBlock Text="Next notification in: "/>
+                        <TextBlock Text="01:25:12" Margin="4 0" x:Name="TimeUntilNotificationTextBlock"/>
+                    </StackPanel>
+                </StackPanel>
+            </GroupBox>
+            
+            <GroupBox Header="Duration (in seconds)" Margin="8" Grid.Row="2">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0 8">
+                    <Slider Width="200" Minimum="1" Maximum="15" TickFrequency="1" IsSnapToTickEnabled="True" TickPlacement="BottomRight" x:Name="DurationSlider" ValueChanged="DurationSlider_ValueChanged"/>
+                    <TextBox Width="40" Margin="8 0" x:Name="DurationTextBox" TextChanged="DurationTextBox_TextChanged"/>
+                </StackPanel>
+            </GroupBox>
+
+        </Grid>
+        
+    </Grid>
+
+</adonisControls:AdonisWindow>
