@@ -9,6 +9,7 @@
              Width="200">
     <Grid Background="Transparent">
         <Image Source="water.ico" />
+        <TextBlock HorizontalAlignment="Stretch" VerticalAlignment="Center" TextAlignment="Center" x:Name="TextTextBlock"/>
     </Grid>
     
 </UserControl>

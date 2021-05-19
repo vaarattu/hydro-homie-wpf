@@ -1,7 +1,11 @@
 ﻿using AdonisUI.Controls;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Media;
-using System.Timers;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -11,15 +15,25 @@ namespace HydroHomie
 {
     public partial class MainWindow : AdonisWindow
     {
+        string customTextsFile = "custom_alert_texts.txt";
+        string customSoundsFolder = "custom_sounds";
+
         int duration = 10;
         int frequency = 30;
         bool displayNotifications = true;
         bool startup = false;
+        bool customText = false;
+        bool customSound = false;
         TimeSpan lastAlert;
+        SoundPlayer soundPlayer;
+        MediaPlayer mediaPlayer;
 
         public MainWindow()
         {
             InitializeComponent();
+
+            soundPlayer = new SoundPlayer();
+            mediaPlayer = new MediaPlayer();
 
             ContextMenuEnableNotifications.Header = displayNotifications ? "Disable notifications" : "Enable notifications";
 
@@ -30,8 +44,7 @@ namespace HydroHomie
             aTimer.Start();
 
             NotificationsToggled(displayNotifications);
-            FrequencyChanged(frequency);
-            DurationChanged(duration);
+            UpdateUI(startup, customSound, customText, frequency, duration);
         }
 
         private void OnTimedEvent(object source, EventArgs e)
@@ -52,10 +65,11 @@ namespace HydroHomie
                     TimeSpan timeSpan = new TimeSpan(now.Hour, now.Minute, 0);
                     if (DateTime.Now.Minute % frequency == 0 && lastAlert != timeSpan)
                     {
-                        TrayIcon.ShowCustomBalloon(new AlertBalloon(), System.Windows.Controls.Primitives.PopupAnimation.Slide, duration*1000);
-                        MediaPlayer player = new MediaPlayer();
-                        player.Open(new Uri(@"luksus.mp3", UriKind.RelativeOrAbsolute));
-                        player.Play();
+                        if (duration > 0)
+                        {
+                            TrayIcon.ShowCustomBalloon(new AlertBalloon(GetNotificationText()), System.Windows.Controls.Primitives.PopupAnimation.Slide, duration * 1000);
+                        }
+                        PlayNotificationSound();
                         lastAlert = timeSpan;
                     }
                 }
@@ -63,6 +77,48 @@ namespace HydroHomie
             else
             {
                 TimeUntilNotificationTextBlock.Text = "ERROR";
+            }
+        }
+
+        private string GetNotificationText()
+        {
+            if (customText)
+            {
+                if (File.Exists(customTextsFile))
+                {
+                    string[] lines = File.ReadAllLines(customTextsFile);
+                    if (lines.Length > 0)
+                    {
+                        return lines[new Random().Next(0, lines.Length - 1)];
+                    }
+                }
+            }
+
+            return "Bottoms up!";
+        }
+
+        private void PlayNotificationSound()
+        {
+            if (customSound)
+            {
+                if (Directory.Exists(customSoundsFolder))
+                {
+                    List<string> files = Directory.EnumerateFiles(customSoundsFolder, "*.*", SearchOption.TopDirectoryOnly).Where(file => file.ToLower().EndsWith("mp3") || file.ToLower().EndsWith("wav")).ToList();
+                    if (files.Count > 0)
+                    {
+                        var uri = new Uri(files[new Random().Next(0, files.Count - 1)], UriKind.RelativeOrAbsolute);
+                        mediaPlayer.Open(uri);
+                        mediaPlayer.Play();
+                    }
+                }
+            }
+            else
+            {
+                using (var stream = Properties.Resources.Untitled)
+                {
+                    soundPlayer.Stream = stream;
+                    soundPlayer.Play();
+                }
             }
         }
 
@@ -127,18 +183,24 @@ namespace HydroHomie
             ContextMenuEnableNotifications.Header = displayNotifications ? "Disable notifications" : "Enable notifications";
         }
 
-        private void FrequencyChanged(int newFrequency)
+        private void UpdateUI(bool newStartUp, bool newCustomSound, bool newCustomText, int newFrequency, int newDuration)
         {
-            frequency = newFrequency;
-            FrequencyTextBox.Text = newFrequency.ToString();
-            FrequencySlider.Value = newFrequency;
-        }
+            EnableStartupCheckBox.IsChecked = newStartUp;
+            startup = newStartUp;
 
-        private void DurationChanged(int newDuration)
-        {
+            CustomSoundCheckBox.IsChecked = newCustomSound;
+            customSound = newCustomSound;
+
+            CustomTextCheckBox.IsChecked = newCustomText;
+            customText = newCustomText;
+
+            frequency = newFrequency;
+            FrequencySlider.Value = (int)Math.Sqrt((double)newFrequency);
+            FrequencyTextBox.Text = newFrequency.ToString();
+
             duration = newDuration;
+            FrequencySlider.Value = (int)Math.Sqrt((double)newDuration);
             DurationTextBox.Text = newDuration.ToString();
-            DurationSlider.Value = newDuration;
         }
 
         private void EnableNotificationsCheckBox_Checked(object sender, RoutedEventArgs e)
@@ -161,8 +223,31 @@ namespace HydroHomie
         {
             if (DurationTextBox != null)
             {
-                duration = (int)e.NewValue;
-                DurationTextBox.Text = e.NewValue.ToString();
+                switch ((int)e.NewValue)
+                {
+                    case 1:
+                        duration = 0;
+                        break;
+                    case 2:
+                        duration = 5;
+                        break;
+                    case 3:
+                        duration = 10;
+                        break;
+                    case 4:
+                        duration = 15;
+                        break;
+                    case 5:
+                        duration = 30;
+                        break;
+                    case 6:
+                        duration = 60;
+                        break;
+                    case 7:
+                        duration = 120;
+                        break;
+                }
+                DurationTextBox.Text = duration.ToString();
             }
         }
 
@@ -170,8 +255,31 @@ namespace HydroHomie
         {
             if (FrequencyTextBox != null)
             {
-                frequency = (int)e.NewValue;
-                FrequencyTextBox.Text = e.NewValue.ToString();
+                switch ((int)e.NewValue)
+                {
+                    case 1:
+                        frequency = 5;
+                        break;
+                    case 2:
+                        frequency = 15;
+                        break;
+                    case 3:
+                        frequency = 30;
+                        break;
+                    case 4:
+                        frequency = 45;
+                        break;
+                    case 5:
+                        frequency = 60;
+                        break;
+                    case 6:
+                        frequency = 120;
+                        break;
+                    case 7:
+                        frequency = 240;
+                        break;
+                }
+                FrequencyTextBox.Text = frequency.ToString();
             }
         }
 
@@ -184,7 +292,6 @@ namespace HydroHomie
                     if (!string.IsNullOrWhiteSpace(textBox.Text))
                     {
                         duration = (int)double.Parse(textBox.Text);
-                        DurationSlider.Value = double.Parse(textBox.Text);
                     }
                 }
             }
@@ -199,9 +306,76 @@ namespace HydroHomie
                     if (!string.IsNullOrWhiteSpace(textBox.Text))
                     {
                         frequency = (int)double.Parse(textBox.Text);
-                        FrequencySlider.Value = double.Parse(textBox.Text);
                     }
                 }
+            }
+        }
+
+        private void TextBox_PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
+        {
+            Regex regex = new Regex("[^0-9]+");
+            e.Handled = regex.IsMatch(e.Text);
+        }
+
+        private void OpenTextsFileButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!File.Exists(customTextsFile))
+            {
+                var stream = File.Create(customTextsFile);
+                stream.Close();
+            }
+            if (File.Exists(customTextsFile))
+            {
+                Process.Start(customTextsFile);
+            }
+        }
+
+        private void OpenSoundsFolderButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!Directory.Exists(customSoundsFolder))
+            {
+                Directory.CreateDirectory(customSoundsFolder);
+            }
+            if (Directory.Exists(customSoundsFolder))
+            {
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    Arguments = customSoundsFolder,
+                    FileName = "explorer.exe"
+                };
+                Process.Start(startInfo);
+            }
+        }
+
+        private void CustomTextCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            if (sender is CheckBox checkBox)
+            {
+                customText = (bool)checkBox.IsChecked;
+            }
+        }
+
+        private void CustomTextCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (sender is CheckBox checkBox)
+            {
+                customText = (bool)checkBox.IsChecked;
+            }
+        }
+
+        private void CustomSoundCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (sender is CheckBox checkBox)
+            {
+                customSound = (bool)checkBox.IsChecked;
+            }
+        }
+
+        private void CustomSoundCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            if (sender is CheckBox checkBox)
+            {
+                customSound = (bool)checkBox.IsChecked;
             }
         }
     }

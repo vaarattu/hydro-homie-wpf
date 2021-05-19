@@ -20,9 +20,10 @@ namespace HydroHomie
     /// </summary>
     public partial class AlertBalloon : UserControl
     {
-        public AlertBalloon()
+        public AlertBalloon(string text)
         {
             InitializeComponent();
+            TextTextBlock.Text = text;
         }
     }
 }

@@ -123,9 +123,7 @@
     <Resource Include="water.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="luksus.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <None Include="Resources\Untitled.wav" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
