@@ -1,10 +1,12 @@
 ﻿using AdonisUI.Controls;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Media;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
@@ -15,8 +17,9 @@ namespace HydroHomie
 {
     public partial class MainWindow : AdonisWindow
     {
-        string customTextsFile = "custom_alert_texts.txt";
-        string customSoundsFolder = "custom_sounds";
+        readonly string customTextsFile = "custom_alert_texts.txt";
+        readonly string customSoundsFolder = "custom_sounds";
+        readonly string[] alertTexts = { "Hydration alert!", "It's time to hydrate!", "Bottoms up!", "Stay hydrated!", "H20 time!", "Drink your favorite water!", "Take a sip!", "Aren't you thristy already?" };
 
         int duration = 10;
         int frequency = 30;
@@ -25,12 +28,15 @@ namespace HydroHomie
         bool customText = false;
         bool customSound = false;
         TimeSpan lastAlert;
-        SoundPlayer soundPlayer;
-        MediaPlayer mediaPlayer;
+        readonly SoundPlayer soundPlayer;
+        readonly MediaPlayer mediaPlayer;
 
         public MainWindow()
         {
             InitializeComponent();
+
+            CreateCustomTextsFile();
+            CreateCustomSoundsFolder();
 
             soundPlayer = new SoundPlayer();
             mediaPlayer = new MediaPlayer();
@@ -80,6 +86,31 @@ namespace HydroHomie
             }
         }
 
+        private void CreateCustomTextsFile()
+        {
+            if (!File.Exists(customTextsFile))
+            {
+                File.WriteAllLines(customTextsFile, alertTexts, Encoding.UTF8);
+            }
+        }
+
+        private void CreateCustomSoundsFolder()
+        {
+            if (!Directory.Exists(customSoundsFolder))
+            {
+                Directory.CreateDirectory(customSoundsFolder);
+                using (var stream = Properties.Resources.Alert)
+                {
+                    using (FileStream file = new FileStream(customSoundsFolder + "/Alert.wav", FileMode.Create, FileAccess.Write))
+                    {
+                        stream.CopyTo(file);
+                        stream.Close();
+                        file.Close();
+                    }
+                }
+            }
+        }
+
         private string GetNotificationText()
         {
             if (customText)
@@ -114,7 +145,7 @@ namespace HydroHomie
             }
             else
             {
-                using (var stream = Properties.Resources.Untitled)
+                using (var stream = Properties.Resources.Alert)
                 {
                     soundPlayer.Stream = stream;
                     soundPlayer.Play();
@@ -216,6 +247,17 @@ namespace HydroHomie
             if (sender is CheckBox checkBox)
             {
                 startup = (bool)checkBox.IsChecked;
+                using (RegistryKey key = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true))
+                {
+                    if (startup)
+                    {
+                        key.SetValue("HydroHomie", "\"" + System.Reflection.Assembly.GetExecutingAssembly().Location + "\"");
+                    }
+                    else
+                    {
+                        key.DeleteValue("HydroHomie", false);
+                    }
+                }
             }
         }
 
@@ -319,11 +361,7 @@ namespace HydroHomie
 
         private void OpenTextsFileButton_Click(object sender, RoutedEventArgs e)
         {
-            if (!File.Exists(customTextsFile))
-            {
-                var stream = File.Create(customTextsFile);
-                stream.Close();
-            }
+            CreateCustomTextsFile();
             if (File.Exists(customTextsFile))
             {
                 Process.Start(customTextsFile);
@@ -332,10 +370,7 @@ namespace HydroHomie
 
         private void OpenSoundsFolderButton_Click(object sender, RoutedEventArgs e)
         {
-            if (!Directory.Exists(customSoundsFolder))
-            {
-                Directory.CreateDirectory(customSoundsFolder);
-            }
+            CreateCustomSoundsFolder();
             if (Directory.Exists(customSoundsFolder))
             {
                 ProcessStartInfo startInfo = new ProcessStartInfo

@@ -63,9 +63,9 @@ namespace HydroHomie.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
         /// </summary>
-        internal static System.IO.UnmanagedMemoryStream Untitled {
+        internal static System.IO.UnmanagedMemoryStream Alert {
             get {
-                return ResourceManager.GetStream("Untitled", resourceCulture);
+                return ResourceManager.GetStream("Alert", resourceCulture);
             }
         }
     }
