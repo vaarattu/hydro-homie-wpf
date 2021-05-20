@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
 
 namespace HydroHomie
@@ -13,5 +8,15 @@ namespace HydroHomie
     /// </summary>
     public partial class App : Application
     {
+        private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+        public App()
+        {
+            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
+        }
+
+        private static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
+        {
+            Logger.Error((Exception)args.ExceptionObject, "UnhandledExceptionHandler");
+        }
     }
 }

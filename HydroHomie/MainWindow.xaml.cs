@@ -115,10 +115,7 @@ namespace HydroHomie
                     TimeSpan timeSpan = new TimeSpan(now.Hour, now.Minute, 0);
                     if (DateTime.Now.Minute % _settings.AlertFrequency == 0 && lastAlert != timeSpan)
                     {
-                        if (_settings.AlertDuration > 0)
-                        {
-                            PlayAlert();
-                        }
+                        PlayAlert();
                         lastAlert = timeSpan;
                     }
                 }
@@ -131,7 +128,10 @@ namespace HydroHomie
 
         private void PlayAlert()
         {
-            TrayIcon.ShowCustomBalloon(new AlertBalloon(GetNotificationText()), System.Windows.Controls.Primitives.PopupAnimation.Slide, _settings.AlertDuration * 1000);
+            if (_settings.AlertDuration > 0)
+            {
+                TrayIcon.ShowCustomBalloon(new AlertBalloon(GetNotificationText()), System.Windows.Controls.Primitives.PopupAnimation.Slide, _settings.AlertDuration * 1000);
+            }
             if (!_settings.MuteAlerts)
             {
                 PlayNotificationSound();
@@ -259,6 +259,18 @@ namespace HydroHomie
             this.Focus();
         }
 
+        private void SetFrequency(int frequency)
+        {
+            _settings.AlertFrequency = frequency;
+            WriteSettingsFile(_settings);
+        }
+
+        private void SetDuration(int duration)
+        {
+            _settings.AlertDuration = duration;
+            WriteSettingsFile(_settings);
+        }
+
         private void AlertsToggled(bool enabled)
         {
             EnableAlertsCheckBox.IsChecked = enabled;
@@ -284,21 +296,18 @@ namespace HydroHomie
             DurationTextBox.Text = _settings.AlertDuration.ToString();
         }
 
-        private void EnableStartupCheckBox_Checked(object sender, RoutedEventArgs e)
+        private void StartupToggled(bool toggle)
         {
-            if (sender is CheckBox checkBox)
+            _settings.StartWithWindows = toggle;
+            using (RegistryKey key = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true))
             {
-                _settings.StartWithWindows = (bool)checkBox.IsChecked;
-                using (RegistryKey key = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true))
+                if (_settings.StartWithWindows)
                 {
-                    if (_settings.StartWithWindows)
-                    {
-                        key.SetValue("HydroHomie", "\"" + System.Reflection.Assembly.GetExecutingAssembly().Location + "\"");
-                    }
-                    else
-                    {
-                        key.DeleteValue("HydroHomie", false);
-                    }
+                    key.SetValue("HydroHomie", "\"" + System.Reflection.Assembly.GetExecutingAssembly().Location + "\"");
+                }
+                else
+                {
+                    key.DeleteValue("HydroHomie", false);
                 }
             }
         }
@@ -307,31 +316,33 @@ namespace HydroHomie
         {
             if (DurationTextBox != null)
             {
+                int duration = 0;
                 switch ((int)e.NewValue)
                 {
                     case 1:
-                        _settings.AlertDuration = 0;
+                        duration = 0;
                         break;
                     case 2:
-                        _settings.AlertDuration = 5;
+                        duration = 5;
                         break;
                     case 3:
-                        _settings.AlertDuration = 10;
+                        duration = 10;
                         break;
                     case 4:
-                        _settings.AlertDuration = 15;
+                        duration = 15;
                         break;
                     case 5:
-                        _settings.AlertDuration = 30;
+                        duration = 30;
                         break;
                     case 6:
-                        _settings.AlertDuration = 60;
+                        duration = 60;
                         break;
                     case 7:
-                        _settings.AlertDuration = 120;
+                        duration = 120;
                         break;
                 }
-                DurationTextBox.Text = _settings.AlertDuration.ToString();
+                DurationTextBox.Text = duration.ToString();
+                SetDuration(duration);
             }
         }
 
@@ -339,31 +350,33 @@ namespace HydroHomie
         {
             if (FrequencyTextBox != null)
             {
+                int frequency = 0;
                 switch ((int)e.NewValue)
                 {
                     case 1:
-                        _settings.AlertFrequency = 5;
+                        frequency = 5;
                         break;
                     case 2:
-                        _settings.AlertFrequency = 15;
+                        frequency = 15;
                         break;
                     case 3:
-                        _settings.AlertFrequency = 30;
+                        frequency = 30;
                         break;
                     case 4:
-                        _settings.AlertFrequency = 45;
+                        frequency = 45;
                         break;
                     case 5:
-                        _settings.AlertFrequency = 60;
+                        frequency = 60;
                         break;
                     case 6:
-                        _settings.AlertFrequency = 120;
+                        frequency = 120;
                         break;
                     case 7:
-                        _settings.AlertFrequency = 240;
+                        frequency = 240;
                         break;
                 }
-                FrequencyTextBox.Text = _settings.AlertFrequency.ToString();
+                FrequencyTextBox.Text = frequency.ToString();
+                SetFrequency(frequency);
             }
         }
 
@@ -448,7 +461,7 @@ namespace HydroHomie
                         _settings.MuteAlerts = (bool)checkBox.IsChecked;
                         break;
                     case "EnableStartupCheckBox":
-                        _settings.StartWithWindows = (bool)checkBox.IsChecked;
+                        StartupToggled((bool)checkBox.IsChecked);
                         break;
                     case "StartMinimizedCheckBox":
                         _settings.StartMinimized = (bool)checkBox.IsChecked;
@@ -463,6 +476,7 @@ namespace HydroHomie
                         break;
                 }
             }
+            WriteSettingsFile(_settings);
         }
     }
 }
