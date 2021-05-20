@@ -7,7 +7,7 @@
                              xmlns:adonisControls="clr-namespace:AdonisUI.Controls;assembly=AdonisUI"
                              xmlns:tb="http://www.hardcodet.net/taskbar" 
                              mc:Ignorable="d"
-                             Height="520" 
+                             Height="570" 
                              Width="325"
                              TitleBarBackground="{StaticResource BlueGradientBrush}"
                              Icon="Water.ico"
@@ -18,18 +18,18 @@
                              ResizeMode="CanMinimize">
 
     <Grid>
-        
+
         <tb:TaskbarIcon x:Name="TrayIcon" IconSource="Water.ico" TrayLeftMouseDown="TrayIcon_TrayLeftMouseDown">
-            <!--
+
             <tb:TaskbarIcon.TrayToolTip>
-                <Border Background="White" BorderBrush="Orange" BorderThickness="2" CornerRadius="4" Opacity="0.8" Width="160" Height="40">
-                    <TextBlock Text="hello world" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                <Border Background="WhiteSmoke" BorderBrush="Gray" BorderThickness="1" >
+                    <TextBlock Text="HydroHomie: Click to open settings." HorizontalAlignment="Center" VerticalAlignment="Center" Margin="4"/>
                 </Border>
             </tb:TaskbarIcon.TrayToolTip>
-            -->
+            
             <tb:TaskbarIcon.ContextMenu>
                 <ContextMenu x:Name="RightClickMenu" Background="LightCoral">
-                    <MenuItem x:Name="ContextMenuEnableNotifications" Header="Enable notifications" Click="MenuItem_Click"/>
+                    <MenuItem x:Name="EnableAlertsMenuItem" Header="Enable alerts" Click="MenuItem_Click"/>
                     <Separator />
                     <MenuItem Header="Settings" Click="MenuItem_Click"/>
                     <Separator />
@@ -44,28 +44,20 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <GroupBox Header="Options" Margin="8" Grid.Row="0">
                 <UniformGrid Rows="4" Columns="2">
-                    <CheckBox Margin="8" Content="Enable alerts" Height="30" x:Name="EnableNotificationsCheckBox" Checked="EnableNotificationsCheckBox_Checked" Unchecked="EnableNotificationsCheckBox_Checked" ToolTip="Toggle alerts"/>
-                    <CheckBox Margin="8" Content="Mute alerts" Height="30" x:Name="MuteAlertsCheckBox" ToolTip="Mute alert sound"/>
-                    <CheckBox Margin="8" Content="Start with windows" Height="30" x:Name="EnableStartupCheckBox" Checked="EnableStartupCheckBox_Checked" Unchecked="EnableStartupCheckBox_Checked" ToolTip="Launch with windows"/>
+                    <CheckBox Margin="8" Content="Enable alerts" Height="30" x:Name="EnableAlertsCheckBox" Checked="CheckBox_CheckedChanged" Unchecked="CheckBox_CheckedChanged" ToolTip="Toggle alerts"/>
+                    <CheckBox Margin="8" Content="Mute alerts" Height="30" x:Name="MuteAlertsCheckBox" ToolTip="Mute alert sound" Checked="CheckBox_CheckedChanged" Unchecked="CheckBox_CheckedChanged"/>
+                    <CheckBox Margin="8" Content="Start with windows" Height="30" x:Name="EnableStartupCheckBox" Checked="CheckBox_CheckedChanged" Unchecked="CheckBox_CheckedChanged" ToolTip="Launch with windows"/>
                     <CheckBox Margin="8" Content="Start minimized" Height="30" x:Name="StartMinimizedCheckBox" ToolTip="Start application minimized"/>
-                    <CheckBox Margin="8" Content="Custom alert sound" Height="30" x:Name="CustomSoundCheckBox" Checked="CustomSoundCheckBox_Checked" Unchecked="CustomSoundCheckBox_Unchecked" ToolTip="Supports wav and mp3"/>
-                    <Button Margin="8" Content="Open sounds folder" x:Name="OpenSoundsFolderButton" Click="OpenSoundsFolderButton_Click"/>
-                    <CheckBox Margin="8" Content="Custom alert text" Height="30" x:Name="CustomTextCheckBox" Checked="CustomTextCheckBox_Checked" Unchecked="CustomTextCheckBox_Checked" ToolTip="Each row is one text"/>
-                    <Button Margin="8" Content="Open texts file" x:Name="OpenTextsFileButton" Click="OpenTextsFileButton_Click"/>
-                </UniformGrid> <!--
-                <StackPanel Orientation="Vertical">
-                    <StackPanel Orientation="Horizontal" Margin="0 0">
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" Margin="0 0">
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" Margin="0 0">
-                    </StackPanel>
-                    
-                </StackPanel>-->
+                    <CheckBox Margin="8" Content="Custom alert text" Height="30" x:Name="CustomTextCheckBox" Checked="CheckBox_CheckedChanged" Unchecked="CheckBox_CheckedChanged" ToolTip="Each row is one text"/>
+                    <Button Margin="8" Content="Open texts file" x:Name="OpenTextsFileButton" Click="Button_Clicked"/>
+                    <CheckBox Margin="8" Content="Custom alert sound" Height="30" x:Name="CustomSoundCheckBox" Checked="CheckBox_CheckedChanged" Unchecked="CheckBox_CheckedChanged" ToolTip="Supports wav and mp3"/>
+                    <Button Margin="8" Content="Open sounds folder" x:Name="OpenSoundsFolderButton" Click="Button_Clicked"/>
+                </UniformGrid>
             </GroupBox>
 
             <GroupBox Header="Alert frequency (in minutes)" Margin="8" Grid.Row="1">
@@ -75,18 +67,20 @@
                         <TextBox Width="40" Margin="8 0" x:Name="FrequencyTextBox" TextChanged="FrequencyTextBox_TextChanged" PreviewTextInput="TextBox_PreviewTextInput"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="0 8 0 4">
-                        <TextBlock Text="Next notification in: "/>
-                        <TextBlock Text="01:25:12" Margin="4 0" x:Name="TimeUntilNotificationTextBlock"/>
+                        <TextBlock Text="Next alert in: "/>
+                        <TextBlock Text="Calculating..." Margin="4 0" x:Name="TimeUntilNextAlertTextBlock"/>
                     </StackPanel>
                 </StackPanel>
             </GroupBox>
             
-            <GroupBox Header="Alert popup notification duration (in seconds)" Margin="8" Grid.Row="2">
+            <GroupBox Header="Alert duration (in seconds)" Margin="8" Grid.Row="2">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0 8">
                     <Slider Width="200" Minimum="1" Maximum="7" TickFrequency="1" IsSnapToTickEnabled="True" TickPlacement="BottomRight" x:Name="DurationSlider" ValueChanged="DurationSlider_ValueChanged"/>
                     <TextBox Width="40" Margin="8 0" x:Name="DurationTextBox" TextChanged="DurationTextBox_TextChanged" PreviewTextInput="TextBox_PreviewTextInput"/>
                 </StackPanel>
             </GroupBox>
+
+            <Button Grid.Row="3" Width="100" Height="30" Margin="8" Content="Test alert" x:Name="TestAlertButton" Click="Button_Clicked"/>
 
         </Grid>
         
