@@ -9,6 +9,7 @@ namespace HydroHomie
     public partial class App : Application
     {
         private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
         public App()
         {
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
@@ -16,7 +17,12 @@ namespace HydroHomie
 
         private static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
         {
-            Logger.Error((Exception)args.ExceptionObject, "UnhandledExceptionHandler");
+            Exception ex = (Exception)args.ExceptionObject;
+            Logger.Error(ex, ex.Message);
+            if (ex.InnerException != null)
+            {
+                Logger.Error(ex.InnerException, ex.InnerException.Message);
+            }
         }
     }
 }

@@ -52,7 +52,7 @@
                     <CheckBox Margin="8" Content="Enable alerts" Height="30" x:Name="EnableAlertsCheckBox" Checked="CheckBox_CheckedChanged" Unchecked="CheckBox_CheckedChanged" ToolTip="Toggle alerts"/>
                     <CheckBox Margin="8" Content="Mute alerts" Height="30" x:Name="MuteAlertsCheckBox" ToolTip="Mute alert sound" Checked="CheckBox_CheckedChanged" Unchecked="CheckBox_CheckedChanged"/>
                     <CheckBox Margin="8" Content="Start with windows" Height="30" x:Name="EnableStartupCheckBox" Checked="CheckBox_CheckedChanged" Unchecked="CheckBox_CheckedChanged" ToolTip="Launch with windows"/>
-                    <CheckBox Margin="8" Content="Start minimized" Height="30" x:Name="StartMinimizedCheckBox" ToolTip="Start application minimized"/>
+                    <CheckBox Margin="8" Content="Start minimized" Height="30" x:Name="StartMinimizedCheckBox" ToolTip="Start application minimized" Checked="CheckBox_CheckedChanged" Unchecked="CheckBox_CheckedChanged" />
                     <CheckBox Margin="8" Content="Custom alert text" Height="30" x:Name="CustomTextCheckBox" Checked="CheckBox_CheckedChanged" Unchecked="CheckBox_CheckedChanged" ToolTip="Each row is one text"/>
                     <Button Margin="8" Content="Open texts file" x:Name="OpenTextsFileButton" Click="Button_Clicked"/>
                     <CheckBox Margin="8" Content="Custom alert sound" Height="30" x:Name="CustomSoundCheckBox" Checked="CheckBox_CheckedChanged" Unchecked="CheckBox_CheckedChanged" ToolTip="Supports wav and mp3"/>

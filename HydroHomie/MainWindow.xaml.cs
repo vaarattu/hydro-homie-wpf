@@ -18,9 +18,6 @@ namespace HydroHomie
 {
     public partial class MainWindow : AdonisWindow
     {
-        readonly string settingsFile = "Settings.xml";
-        readonly string customTextsFile = "custom_alert_texts.txt";
-        readonly string customSoundsFolder = "custom_sounds";
         readonly string[] alertTexts = { "Hydration alert!", "It's time to hydrate!", "Bottoms up!", "Stay hydrated!", "H20 time!", "Drink your favorite water!", "Take a sip!", "Aren't you thristy already?" };
 
         readonly SoundPlayer soundPlayer;
@@ -56,9 +53,24 @@ namespace HydroHomie
             SetupTimer();
         }
 
+        private string GetSettingsFilePath()
+        {
+            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Settings.xml");
+        }
+
+        private string GetCustomTextsFilePath()
+        {
+            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "custom_alert_texts.txt");
+        }
+
+        private string GetCustomSoundsFolderPath()
+        {
+            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "custom_alert_sounds");
+        }
+
         private Settings ReadSettingsFile()
         {
-            if (!File.Exists(settingsFile))
+            if (!File.Exists(GetSettingsFilePath()))
             {
                 WriteSettingsFile(new Settings {
                     EnableAlerts = true,
@@ -73,7 +85,7 @@ namespace HydroHomie
             }
 
             XmlSerializer reader = new XmlSerializer(typeof(Settings));
-            StreamReader file = new StreamReader(settingsFile);
+            StreamReader file = new StreamReader(GetSettingsFilePath());
             Settings settings = (Settings)reader.Deserialize(file);
             file.Close();
 
@@ -83,7 +95,7 @@ namespace HydroHomie
         private void WriteSettingsFile(Settings settings)
         {
             XmlSerializer writer = new XmlSerializer(typeof(Settings));
-            StreamWriter wfile = new StreamWriter(settingsFile);
+            StreamWriter wfile = new StreamWriter(GetSettingsFilePath());
             writer.Serialize(wfile, settings);
             wfile.Close();
         }
@@ -140,20 +152,20 @@ namespace HydroHomie
 
         private void CreateCustomTextsFile()
         {
-            if (!File.Exists(customTextsFile))
+            if (!File.Exists(GetCustomTextsFilePath()))
             {
-                File.WriteAllLines(customTextsFile, alertTexts, Encoding.UTF8);
+                File.WriteAllLines(GetCustomTextsFilePath(), alertTexts, Encoding.UTF8);
             }
         }
 
         private void CreateCustomSoundsFolder()
         {
-            if (!Directory.Exists(customSoundsFolder))
+            if (!Directory.Exists(GetCustomSoundsFolderPath()))
             {
-                Directory.CreateDirectory(customSoundsFolder);
+                Directory.CreateDirectory(GetCustomSoundsFolderPath());
                 using (var stream = Properties.Resources.Alert)
                 {
-                    using (FileStream file = new FileStream(customSoundsFolder + "/Alert.wav", FileMode.Create, FileAccess.Write))
+                    using (FileStream file = new FileStream(GetCustomSoundsFolderPath() + "/Alert.wav", FileMode.Create, FileAccess.Write))
                     {
                         stream.CopyTo(file);
                         stream.Close();
@@ -167,9 +179,9 @@ namespace HydroHomie
         {
             if (_settings.UseCustomTexts)
             {
-                if (File.Exists(customTextsFile))
+                if (File.Exists(GetCustomTextsFilePath()))
                 {
-                    string[] lines = File.ReadAllLines(customTextsFile);
+                    string[] lines = File.ReadAllLines(GetCustomTextsFilePath());
                     if (lines.Length > 0)
                     {
                         return lines[new Random().Next(0, lines.Length - 1)];
@@ -184,9 +196,9 @@ namespace HydroHomie
         {
             if (_settings.UseCustomSounds)
             {
-                if (Directory.Exists(customSoundsFolder))
+                if (Directory.Exists(GetCustomSoundsFolderPath()))
                 {
-                    List<string> files = Directory.EnumerateFiles(customSoundsFolder, "*.*", SearchOption.TopDirectoryOnly).Where(file => file.ToLower().EndsWith("mp3") || file.ToLower().EndsWith("wav")).ToList();
+                    List<string> files = Directory.EnumerateFiles(GetCustomSoundsFolderPath(), "*.*", SearchOption.TopDirectoryOnly).Where(file => file.ToLower().EndsWith("mp3") || file.ToLower().EndsWith("wav")).ToList();
                     if (files.Count > 0)
                     {
                         var uri = new Uri(files[new Random().Next(0, files.Count - 1)], UriKind.RelativeOrAbsolute);
@@ -388,7 +400,7 @@ namespace HydroHomie
                 {
                     if (!string.IsNullOrWhiteSpace(textBox.Text))
                     {
-                        _settings.AlertDuration = (int)double.Parse(textBox.Text);
+                        SetDuration((int)double.Parse(textBox.Text));
                     }
                 }
             }
@@ -402,7 +414,7 @@ namespace HydroHomie
                 {
                     if (!string.IsNullOrWhiteSpace(textBox.Text))
                     {
-                        _settings.AlertFrequency = (int)double.Parse(textBox.Text);
+                        SetFrequency((int)double.Parse(textBox.Text));
                     }
                 }
             }
@@ -422,11 +434,11 @@ namespace HydroHomie
                 {
                     case "OpenSoundsFolderButton":
                         CreateCustomSoundsFolder();
-                        if (Directory.Exists(customSoundsFolder))
+                        if (Directory.Exists(GetCustomSoundsFolderPath()))
                         {
                             ProcessStartInfo startInfo = new ProcessStartInfo
                             {
-                                Arguments = customSoundsFolder,
+                                Arguments = GetCustomSoundsFolderPath(),
                                 FileName = "explorer.exe"
                             };
                             Process.Start(startInfo);
@@ -434,9 +446,9 @@ namespace HydroHomie
                         break;
                     case "OpenTextsFileButton":
                         CreateCustomTextsFile();
-                        if (File.Exists(customTextsFile))
+                        if (File.Exists(GetCustomTextsFilePath()))
                         {
-                            Process.Start(customTextsFile);
+                            Process.Start(GetCustomTextsFilePath());
                         }
                         break;
                     case "TestAlertButton":
