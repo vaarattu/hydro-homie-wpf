@@ -26,7 +26,8 @@ namespace HydroHomie
 
         TimeSpan lastAlert;
 
-        private Settings _settings;
+        private readonly Settings _settings;
+        private bool allowEvents = false;
 
         public MainWindow()
         {
@@ -292,6 +293,8 @@ namespace HydroHomie
 
         private void UpdateUI()
         {
+            allowEvents = false;
+
             AlertsToggled(_settings.EnableAlerts);
             MuteAlertsCheckBox.IsChecked = _settings.MuteAlerts;
 
@@ -301,11 +304,13 @@ namespace HydroHomie
             CustomSoundCheckBox.IsChecked = _settings.UseCustomSounds;
             CustomTextCheckBox.IsChecked = _settings.UseCustomTexts;
 
-            FrequencySlider.Value = (int)Math.Sqrt(_settings.AlertFrequency);
             FrequencyTextBox.Text = _settings.AlertFrequency.ToString();
+            FrequencySlider.Value = (int)Math.Sqrt(_settings.AlertFrequency);
 
-            FrequencySlider.Value = (int)Math.Sqrt(_settings.AlertDuration);
             DurationTextBox.Text = _settings.AlertDuration.ToString();
+            DurationSlider.Value = (int)Math.Sqrt(_settings.AlertDuration);
+
+            allowEvents = true;
         }
 
         private void StartupToggled(bool toggle)
@@ -326,7 +331,7 @@ namespace HydroHomie
 
         private void DurationSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (DurationTextBox != null)
+            if (DurationTextBox != null && allowEvents)
             {
                 int duration = 0;
                 switch ((int)e.NewValue)
@@ -360,7 +365,7 @@ namespace HydroHomie
 
         private void FrequencySlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (FrequencyTextBox != null)
+            if (FrequencyTextBox != null && allowEvents)
             {
                 int frequency = 0;
                 switch ((int)e.NewValue)
@@ -394,7 +399,7 @@ namespace HydroHomie
 
         private void DurationTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (DurationSlider != null)
+            if (DurationSlider != null && allowEvents)
             {
                 if (sender is TextBox textBox)
                 {
@@ -408,7 +413,7 @@ namespace HydroHomie
 
         private void FrequencyTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (FrequencySlider != null)
+            if (FrequencySlider != null && allowEvents)
             {
                 if (sender is TextBox textBox)
                 {
@@ -462,7 +467,7 @@ namespace HydroHomie
 
         private void CheckBox_CheckedChanged(object sender, RoutedEventArgs e)
         {
-            if (sender is CheckBox checkBox)
+            if (sender is CheckBox checkBox && allowEvents)
             {
                 switch (checkBox.Name)
                 {
@@ -487,8 +492,8 @@ namespace HydroHomie
                     default:
                         break;
                 }
+                WriteSettingsFile(_settings);
             }
-            WriteSettingsFile(_settings);
         }
     }
 }
