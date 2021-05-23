@@ -60,6 +60,7 @@ namespace HydroHomie
 
         private void SetupChart()
         {
+            double[] values = { 4.52, 3.52, 1.42, 5.72 };
 
             LvcXAxis.Title = "Date";
             LvcYAxis.Title = "Water consumed (in l)";
@@ -68,16 +69,19 @@ namespace HydroHomie
             {
                 new ColumnSeries
                 {
-                    Values = new ChartValues<double> { 4.52, 3.52, 1.42, 5.72 }
+                    Values = new ChartValues<double>(values)
                 }
             };
 
             string[] Labels = new[] { "20.5.2021", "21.5.2021", "22.5.2021", "23.5.2021" };
-            Func<double, string> Formatter = value => value.ToString("N");
+            Func<double, string> Formatter = value => value.ToString();
 
             LvcChart.Series = SeriesCollection;
             LvcXAxis.Labels = Labels;
             LvcYAxis.LabelFormatter = Formatter;
+
+            AvgAxis.Value = values.Average();
+            GoalAxis.Value = values.Average() + 1;
         }
 
         private string GetSettingsFilePath()
@@ -516,11 +520,38 @@ namespace HydroHomie
                     case "CustomSoundCheckBox":
                         _settings.UseCustomSounds = (bool)checkBox.IsChecked;
                         break;
+                    case "TrackWaterCheckBox":
+                        WaterTrackingGroupBox.IsEnabled = (bool)checkBox.IsChecked;
+                        _settings.TrackConsumption = (bool)checkBox.IsChecked;
+                        break;
                     default:
                         break;
                 }
                 WriteSettingsFile(_settings);
             }
+        }
+
+        private void WaterTrackingTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            double weight = 0;
+            int exercise = 0;
+
+            double.TryParse(BodyWeightTextBox.Text, out weight);
+            int.TryParse(DailyExerciseTextBox.Text, out exercise);
+
+            double water = 0;
+            if (weight > 0)
+            {
+                weight *= 2.20462262;
+                water += (weight * (2.0 / 3.0));
+            }
+            if (exercise > 0)
+            {
+                water += ((exercise / 30.0) * 12.0);
+            }
+            water /= 33.814;
+            GoalAxis.Visibility = water > 0 ? Visibility.Visible : Visibility.Collapsed;
+            GoalAxis.Value = water;
         }
     }
 }

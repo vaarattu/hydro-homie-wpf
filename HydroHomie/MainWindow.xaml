@@ -5,10 +5,11 @@
                              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                              xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
                              xmlns:adonisControls="clr-namespace:AdonisUI.Controls;assembly=AdonisUI"
+                             xmlns:adonisExtensions="clr-namespace:AdonisUI.Extensions;assembly=AdonisUI"
                              xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
                              xmlns:tb="http://www.hardcodet.net/taskbar" 
                              mc:Ignorable="d"
-                             Width="Auto"
+                             Width="770"
                              Height="570"
                              TitleBarBackground="{StaticResource BlueGradientBrush}"
                              Icon="Water.ico"
@@ -43,8 +44,8 @@
         <Grid>
 
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="320" />
-                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="4*" />
+                <ColumnDefinition Width="5*" />
             </Grid.ColumnDefinitions>
             
             <Grid Grid.Row="0">
@@ -63,7 +64,7 @@
 
                         <UniformGrid Rows="5" Columns="2" Height="225" Margin="0 0 0 -40">
                             <CheckBox Margin="8" Content="Enable alerts" Height="30" x:Name="EnableAlertsCheckBox" Checked="CheckBox_CheckedChanged" Unchecked="CheckBox_CheckedChanged" ToolTip="Toggle alerts"/>
-                            <CheckBox Margin="8" Content="Mute alerts" Height="30" x:Name="MuteAlertsCheckBox" ToolTip="Mute alert sound" Checked="CheckBox_CheckedChanged" Unchecked="CheckBox_CheckedChanged"/>
+                            <CheckBox Margin="8" Content="Silent alerts" Height="30" x:Name="MuteAlertsCheckBox" ToolTip="Mute alert sound" Checked="CheckBox_CheckedChanged" Unchecked="CheckBox_CheckedChanged"/>
                             <CheckBox Margin="8" Content="Start with windows" Height="30" x:Name="EnableStartupCheckBox" Checked="CheckBox_CheckedChanged" Unchecked="CheckBox_CheckedChanged" ToolTip="Launch with windows"/>
                             <CheckBox Margin="8" Content="Start minimized" Height="30" x:Name="StartMinimizedCheckBox" ToolTip="Start application minimized" Checked="CheckBox_CheckedChanged" Unchecked="CheckBox_CheckedChanged" />
                             <CheckBox Margin="8" Content="Custom alert text" Height="30" x:Name="CustomTextCheckBox" Checked="CheckBox_CheckedChanged" Unchecked="CheckBox_CheckedChanged" ToolTip="Each row is one text"/>
@@ -98,18 +99,7 @@
             </Grid>
 
             <Grid Grid.Column="1">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                
-                <ToggleButton Content="Water consumption tracking view" FontSize="14" >
-                    <ToggleButton.LayoutTransform>
-                        <RotateTransform Angle="-90" />
-                    </ToggleButton.LayoutTransform>
-                </ToggleButton>
-
-                <GroupBox Header="Water tracking" Margin="8" Grid.Column="1" Width="600">
+                <GroupBox Header="Water tracking" Margin="8" IsEnabled="False" x:Name="WaterTrackingGroupBox">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="1*" />
@@ -117,26 +107,35 @@
                             <RowDefinition Height="1*" />
                             <RowDefinition Height="5*" />
                         </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <CheckBox Grid.Row="0" Grid.ColumnSpan="2" Content="Enable water consumption tracking" />
-                        <StackPanel Grid.Row="1" Grid.Column="0">
-                            <Label Content="Body weight" />
-                            <StackPanel Orientation="Horizontal">
-                                <TextBox Width="50"/>
-                                <Label Content="Kg" />
+                        <UniformGrid Columns="2">
+                            <TextBlock />
+                            <UniformGrid Columns="2">
+                                <RadioButton Content="Metric"/>
+                                <RadioButton Content="Imperial" />
+                            </UniformGrid>
+                        </UniformGrid>
+                        <UniformGrid Columns="3" Grid.Row="1">
+                            <UniformGrid Columns="2">
+                                <RadioButton Content="Male"/>
+                                <RadioButton Content="Female" />
+                            </UniformGrid>
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                <TextBlock Text="Body weight" Margin="-4 0 0 4"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBox x:Name="BodyWeightTextBox" Width="50" TextChanged="WaterTrackingTextBox_TextChanged"/>
+                                    <TextBlock Text="kg" VerticalAlignment="Center" Margin="4 0 0 0"/>
+                                </StackPanel>
                             </StackPanel>
-                        </StackPanel>
-                        <StackPanel Grid.Row="1" Grid.Column="1">
-                            <Label Content="Daily exercise" />
-                            <StackPanel Orientation="Horizontal">
-                                <TextBox Width="50"/>
-                                <Label Content="minutes" />
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                <TextBlock Text="Daily exercise" Margin="-4 0 0 4"/>
+                                <StackPanel Orientation="Horizontal" >
+                                    <TextBox x:Name="DailyExerciseTextBox" Width="50" TextChanged="WaterTrackingTextBox_TextChanged"/>
+                                    <TextBlock Text="minutes" VerticalAlignment="Center" Margin="4 0 0 0"/>
+                                </StackPanel>
                             </StackPanel>
-                        </StackPanel>
-                        <Grid Grid.Row="2" Grid.ColumnSpan="2">
+
+                        </UniformGrid>
+                        <Grid Grid.Row="2">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="*" />
                                 <RowDefinition Height="*" />
@@ -152,7 +151,7 @@
 
                         </Grid>
 
-                        <Grid Grid.Row="3" Grid.ColumnSpan="2" Margin="0 8 0 0 ">
+                        <Grid Grid.Row="3">
                             <lvc:CartesianChart x:Name="LvcChart" Hoverable="False">
                                 <lvc:CartesianChart.DataTooltip>
                                     <lvc:DefaultTooltip Foreground="Black" ShowSeries="False"/>
@@ -161,13 +160,20 @@
                                     <lvc:Axis x:Name="LvcXAxis" />
                                 </lvc:CartesianChart.AxisX>
                                 <lvc:CartesianChart.AxisY>
-                                    <lvc:Axis x:Name="LvcYAxis" />
+                                    <lvc:Axis x:Name="LvcYAxis">
+                                        <lvc:Axis.Sections>
+                                            <lvc:AxisSection x:Name="GoalAxis" Stroke="AliceBlue" StrokeThickness="2" Label="Goal" DataLabelForeground="Black" SectionWidth="1" />
+                                            <lvc:AxisSection x:Name="AvgAxis" Stroke="Cyan" StrokeThickness="2" Label="Average"/>
+                                        </lvc:Axis.Sections>
+                                    </lvc:Axis>
                                 </lvc:CartesianChart.AxisY>
                             </lvc:CartesianChart>
                         </Grid>
 
                     </Grid>
                 </GroupBox>
+
+                <CheckBox x:Name="TrackWaterCheckBox" Content="Track water consumption" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="15 70 0 0" adonisExtensions:LayerExtension.Layer="2" Checked="CheckBox_CheckedChanged" Unchecked="CheckBox_CheckedChanged"/>
 
             </Grid>
             
