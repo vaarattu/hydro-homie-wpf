@@ -110,14 +110,14 @@
                         <UniformGrid Columns="2">
                             <TextBlock />
                             <UniformGrid Columns="2">
-                                <RadioButton Content="Metric"/>
-                                <RadioButton Content="Imperial" />
+                                <RadioButton x:Name="MetricRadioButton" GroupName="unit" Content="Metric" Checked="UnitRadioButton_Checked" />
+                                <RadioButton x:Name="ImperialRadioButton" GroupName="unit" Content="Imperial" Checked="UnitRadioButton_Checked" />
                             </UniformGrid>
                         </UniformGrid>
                         <UniformGrid Columns="3" Grid.Row="1">
                             <UniformGrid Columns="2">
-                                <RadioButton Content="Male"/>
-                                <RadioButton Content="Female" />
+                                <RadioButton x:Name="MaleRadioButton" GroupName="sex" Content="Male" Checked="SexRadioButton_Checked"/>
+                                <RadioButton x:Name="FemaleRadioButton" GroupName="sex" Content="Female" Checked="SexRadioButton_Checked"/>
                             </UniformGrid>
                             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                                 <TextBlock Text="Body weight" Margin="-4 0 0 4"/>
@@ -152,7 +152,7 @@
                         </Grid>
 
                         <Grid Grid.Row="3">
-                            <lvc:CartesianChart x:Name="LvcChart" Hoverable="False">
+                            <lvc:CartesianChart x:Name="LvcChart" Hoverable="False" Margin="0 8 0 0">
                                 <lvc:CartesianChart.DataTooltip>
                                     <lvc:DefaultTooltip Foreground="Black" ShowSeries="False"/>
                                 </lvc:CartesianChart.DataTooltip>

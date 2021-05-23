@@ -174,7 +174,7 @@ namespace HydroHomie
         {
             if (_settings.AlertDuration > 0)
             {
-                TrayIcon.ShowCustomBalloon(new AlertBalloon(GetNotificationText(), false), System.Windows.Controls.Primitives.PopupAnimation.Slide, _settings.AlertDuration * 1000);
+                TrayIcon.ShowCustomBalloon(new AlertBalloon(GetNotificationText(), _settings.TrackConsumption), System.Windows.Controls.Primitives.PopupAnimation.Slide, _settings.AlertDuration * 1000);
             }
             if (!_settings.MuteAlerts)
             {
@@ -531,11 +531,20 @@ namespace HydroHomie
             }
         }
 
+        private void SexRadioButton_Checked(object sender, RoutedEventArgs e)
+        {
+            CalculateRecommendedWaterIntake();
+        }
+
         private void WaterTrackingTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            double weight = 0;
-            int exercise = 0;
+            CalculateRecommendedWaterIntake();
+        }
 
+        private void CalculateRecommendedWaterIntake()
+        {
+            double weight;
+            int exercise;
             double.TryParse(BodyWeightTextBox.Text, out weight);
             int.TryParse(DailyExerciseTextBox.Text, out exercise);
 
@@ -549,9 +558,23 @@ namespace HydroHomie
             {
                 water += ((exercise / 30.0) * 12.0);
             }
-            water /= 33.814;
+            if (MetricRadioButton.IsChecked == true)
+            {
+                water /= 33.814;
+            }
+            if (FemaleRadioButton.IsChecked == true)
+            {
+                water *= 0.9;
+            }
+            water *= 0.8;
+            water -= 1;
             GoalAxis.Visibility = water > 0 ? Visibility.Visible : Visibility.Collapsed;
             GoalAxis.Value = water;
+        }
+
+        private void UnitRadioButton_Checked(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }
