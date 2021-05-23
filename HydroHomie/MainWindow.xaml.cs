@@ -81,7 +81,8 @@ namespace HydroHomie
                     UseCustomTexts = false,
                     UseCustomSounds = false,
                     AlertFrequency = 60,
-                    AlertDuration = 10
+                    AlertDuration = 10,
+                    TrackConsumption = false
                 });
             }
 
@@ -143,7 +144,7 @@ namespace HydroHomie
         {
             if (_settings.AlertDuration > 0)
             {
-                TrayIcon.ShowCustomBalloon(new AlertBalloon(GetNotificationText()), System.Windows.Controls.Primitives.PopupAnimation.Slide, _settings.AlertDuration * 1000);
+                TrayIcon.ShowCustomBalloon(new AlertBalloon(GetNotificationText(), false), System.Windows.Controls.Primitives.PopupAnimation.Slide, _settings.AlertDuration * 1000);
             }
             if (!_settings.MuteAlerts)
             {

@@ -44,20 +44,27 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <GroupBox Header="Options" Margin="8" Grid.Row="0">
-                <UniformGrid Rows="4" Columns="2">
-                    <CheckBox Margin="8" Content="Enable alerts" Height="30" x:Name="EnableAlertsCheckBox" Checked="CheckBox_CheckedChanged" Unchecked="CheckBox_CheckedChanged" ToolTip="Toggle alerts"/>
-                    <CheckBox Margin="8" Content="Mute alerts" Height="30" x:Name="MuteAlertsCheckBox" ToolTip="Mute alert sound" Checked="CheckBox_CheckedChanged" Unchecked="CheckBox_CheckedChanged"/>
-                    <CheckBox Margin="8" Content="Start with windows" Height="30" x:Name="EnableStartupCheckBox" Checked="CheckBox_CheckedChanged" Unchecked="CheckBox_CheckedChanged" ToolTip="Launch with windows"/>
-                    <CheckBox Margin="8" Content="Start minimized" Height="30" x:Name="StartMinimizedCheckBox" ToolTip="Start application minimized" Checked="CheckBox_CheckedChanged" Unchecked="CheckBox_CheckedChanged" />
-                    <CheckBox Margin="8" Content="Custom alert text" Height="30" x:Name="CustomTextCheckBox" Checked="CheckBox_CheckedChanged" Unchecked="CheckBox_CheckedChanged" ToolTip="Each row is one text"/>
-                    <Button Margin="8" Content="Open texts file" x:Name="OpenTextsFileButton" Click="Button_Clicked"/>
-                    <CheckBox Margin="8" Content="Custom alert sound" Height="30" x:Name="CustomSoundCheckBox" Checked="CheckBox_CheckedChanged" Unchecked="CheckBox_CheckedChanged" ToolTip="Supports wav and mp3"/>
-                    <Button Margin="8" Content="Open sounds folder" x:Name="OpenSoundsFolderButton" Click="Button_Clicked"/>
-                </UniformGrid>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <UniformGrid Rows="5" Columns="2" Height="225" Margin="0 0 0 -40">
+                        <CheckBox Margin="8" Content="Enable alerts" Height="30" x:Name="EnableAlertsCheckBox" Checked="CheckBox_CheckedChanged" Unchecked="CheckBox_CheckedChanged" ToolTip="Toggle alerts"/>
+                        <CheckBox Margin="8" Content="Mute alerts" Height="30" x:Name="MuteAlertsCheckBox" ToolTip="Mute alert sound" Checked="CheckBox_CheckedChanged" Unchecked="CheckBox_CheckedChanged"/>
+                        <CheckBox Margin="8" Content="Start with windows" Height="30" x:Name="EnableStartupCheckBox" Checked="CheckBox_CheckedChanged" Unchecked="CheckBox_CheckedChanged" ToolTip="Launch with windows"/>
+                        <CheckBox Margin="8" Content="Start minimized" Height="30" x:Name="StartMinimizedCheckBox" ToolTip="Start application minimized" Checked="CheckBox_CheckedChanged" Unchecked="CheckBox_CheckedChanged" />
+                        <CheckBox Margin="8" Content="Custom alert text" Height="30" x:Name="CustomTextCheckBox" Checked="CheckBox_CheckedChanged" Unchecked="CheckBox_CheckedChanged" ToolTip="Each row is one text"/>
+                        <Button Margin="8" Content="Open texts file" x:Name="OpenTextsFileButton" Click="Button_Clicked"/>
+                        <CheckBox Margin="8" Content="Custom alert sound" Height="30" x:Name="CustomSoundCheckBox" Checked="CheckBox_CheckedChanged" Unchecked="CheckBox_CheckedChanged" ToolTip="Supports wav and mp3"/>
+                        <Button Margin="8" Content="Open sounds folder" x:Name="OpenSoundsFolderButton" Click="Button_Clicked"/>
+                    </UniformGrid>
+                    <Button Grid.Row="1" Width="100" Height="30" Margin="8" Content="Test alert" x:Name="TestAlertButton" Click="Button_Clicked"/>
+                </Grid>
             </GroupBox>
 
             <GroupBox Header="Alert frequency (in minutes)" Margin="8" Grid.Row="1">
@@ -79,8 +86,6 @@
                     <TextBox Width="40" Margin="8 0" x:Name="DurationTextBox" TextChanged="DurationTextBox_TextChanged" PreviewTextInput="TextBox_PreviewTextInput"/>
                 </StackPanel>
             </GroupBox>
-
-            <Button Grid.Row="3" Width="100" Height="30" Margin="8" Content="Test alert" x:Name="TestAlertButton" Click="Button_Clicked"/>
 
         </Grid>
         

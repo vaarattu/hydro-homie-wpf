@@ -10,5 +10,6 @@
         public bool UseCustomSounds { get; set; }
         public int AlertFrequency { get; set; }
         public int AlertDuration { get; set; }
+        public bool TrackConsumption { get; set; }
     }
 }

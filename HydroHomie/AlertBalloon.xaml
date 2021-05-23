@@ -3,13 +3,55 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
              xmlns:local="clr-namespace:HydroHomie"
              mc:Ignorable="d" 
-             Height="200" 
-             Width="200">
+             Height="125" 
+             Width="400">
+
     <Grid Background="Transparent">
-        <Image Source="water.ico" />
-        <TextBlock HorizontalAlignment="Stretch" VerticalAlignment="Center" TextAlignment="Center" x:Name="TextTextBlock"/>
+
+
+
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="3*" />
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="1" CornerRadius="4" Background="{DynamicResource {x:Static adonisUi:Brushes.Layer0BackgroundBrush}}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="3*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Viewbox Stretch="Uniform" Margin="20 16 16 16">
+                        <TextBlock TextWrapping="Wrap" Foreground="White" HorizontalAlignment="Stretch" VerticalAlignment="Center" TextAlignment="Center" x:Name="TextTextBlock" Text="Chug that water down!"/>
+                    </Viewbox>
+
+                    <UniformGrid Grid.Row="1" Columns="3" Height="35" Visibility="Collapsed" x:Name="TrackingUniformGrid">
+                        <Button Content="125 ml" />
+                        <Button Content="250 ml" />
+                        <Button Content="500 ml" />
+                    </UniformGrid>
+
+                </Grid>
+            </Border>
+
+        </Grid>
+
+        <Grid IsHitTestVisible="False">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="2*" />
+            </Grid.ColumnDefinitions>
+
+            <Image Source="water.ico" Grid.Column="0"/>
+
+        </Grid>
+        
     </Grid>
-    
+
 </UserControl>
