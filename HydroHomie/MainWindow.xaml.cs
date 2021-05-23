@@ -1,4 +1,6 @@
 ﻿using AdonisUI.Controls;
+using LiveCharts;
+using LiveCharts.Wpf;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -52,6 +54,30 @@ namespace HydroHomie
             }
 
             SetupTimer();
+
+            SetupChart();
+        }
+
+        private void SetupChart()
+        {
+
+            LvcXAxis.Title = "Date";
+            LvcYAxis.Title = "Water consumed (in l)";
+
+            SeriesCollection SeriesCollection = new SeriesCollection
+            {
+                new ColumnSeries
+                {
+                    Values = new ChartValues<double> { 4.52, 3.52, 1.42, 5.72 }
+                }
+            };
+
+            string[] Labels = new[] { "20.5.2021", "21.5.2021", "22.5.2021", "23.5.2021" };
+            Func<double, string> Formatter = value => value.ToString("N");
+
+            LvcChart.Series = SeriesCollection;
+            LvcXAxis.Labels = Labels;
+            LvcYAxis.LabelFormatter = Formatter;
         }
 
         private string GetSettingsFilePath()
