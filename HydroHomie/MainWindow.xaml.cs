@@ -2,6 +2,7 @@
 using LiveCharts;
 using LiveCharts.Wpf;
 using Microsoft.Win32;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -29,6 +30,7 @@ namespace HydroHomie
         TimeSpan lastAlert;
 
         private readonly Settings _settings;
+        private readonly WaterConsumptionHistory _waterHistory;
         private bool allowEvents = false;
 
         public MainWindow()
@@ -39,6 +41,7 @@ namespace HydroHomie
             mediaPlayer = new MediaPlayer();
 
             _settings = ReadSettingsFile();
+            _waterHistory = ReadWaterConsumedHistoryFile();
 
             CreateCustomTextsFile();
             CreateCustomSoundsFolder();
@@ -54,16 +57,21 @@ namespace HydroHomie
             }
 
             SetupTimer();
-
-            SetupChart();
         }
 
         private void SetupChart()
         {
-            double[] values = { 4.52, 3.52, 1.42, 5.72 };
+            List<string> labels = new List<string>();
+            List<double> values = new List<double>();
+
+            foreach (var pair in _waterHistory.WaterConsumed)
+            {
+                labels.Add(pair.Key);
+                values.Add(pair.Value);
+            }
 
             LvcXAxis.Title = "Date";
-            LvcYAxis.Title = "Water consumed (in l)";
+            LvcYAxis.Title = "Water consumed";
 
             SeriesCollection SeriesCollection = new SeriesCollection
             {
@@ -73,20 +81,28 @@ namespace HydroHomie
                 }
             };
 
-            string[] Labels = new[] { "20.5.2021", "21.5.2021", "22.5.2021", "23.5.2021" };
             Func<double, string> Formatter = value => value.ToString();
 
             LvcChart.Series = SeriesCollection;
-            LvcXAxis.Labels = Labels;
+            LvcXAxis.Labels = labels;
             LvcYAxis.LabelFormatter = Formatter;
 
             AvgAxis.Value = values.Average();
-            GoalAxis.Value = values.Average() + 1;
+            LvcChart.Update();
+        }
+
+        private void UpdateChart()
+        {
+            var values = LvcChart.Series;
         }
 
         private string GetSettingsFilePath()
         {
             return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Settings.xml");
+        }
+        private string GetWaterConsumedHistoryPath()
+        {
+            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "WaterConsumptionHistory.json");
         }
 
         private string GetCustomTextsFilePath()
@@ -130,6 +146,28 @@ namespace HydroHomie
             StreamWriter wfile = new StreamWriter(GetSettingsFilePath());
             writer.Serialize(wfile, settings);
             wfile.Close();
+        }
+
+        private WaterConsumptionHistory ReadWaterConsumedHistoryFile()
+        {
+            WaterConsumptionHistory history = new WaterConsumptionHistory();
+
+            if (File.Exists(GetWaterConsumedHistoryPath()))
+            {
+                history = JsonConvert.DeserializeObject<WaterConsumptionHistory>(File.ReadAllText(GetWaterConsumedHistoryPath()));
+            }
+
+            if (history.WaterConsumed == null)
+            {
+                history.WaterConsumed = new Dictionary<string, int>();
+            }
+
+            return history;
+        }
+
+        private void WriteWaterConsumedHistoryFile(WaterConsumptionHistory history)
+        {
+            File.WriteAllText(GetWaterConsumedHistoryPath(), JsonConvert.SerializeObject(history, Formatting.Indented));
         }
 
         private void SetupTimer()
@@ -341,6 +379,8 @@ namespace HydroHomie
             DurationTextBox.Text = _settings.AlertDuration.ToString();
             DurationSlider.Value = (int)Math.Sqrt(_settings.AlertDuration);
 
+            SetupChart();
+
             allowEvents = true;
         }
 
@@ -524,8 +564,6 @@ namespace HydroHomie
                         WaterTrackingGroupBox.IsEnabled = (bool)checkBox.IsChecked;
                         _settings.TrackConsumption = (bool)checkBox.IsChecked;
                         break;
-                    default:
-                        break;
                 }
                 WriteSettingsFile(_settings);
             }
@@ -575,6 +613,39 @@ namespace HydroHomie
         private void UnitRadioButton_Checked(object sender, RoutedEventArgs e)
         {
 
+        }
+
+        private void AddWaterConsumed(int amountInMl)
+        {
+            string key = DateTime.Now.ToString("dd-MM-yyyy");
+            if (!_waterHistory.WaterConsumed.ContainsKey(key))
+            {
+                _waterHistory.WaterConsumed.Add(key, 0);
+            }
+            _waterHistory.WaterConsumed[key] += amountInMl;
+            WriteWaterConsumedHistoryFile(_waterHistory);
+            UpdateChart();
+        }
+
+        private void AddWaterConsumedButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button b)
+            {
+                int amount = 0;
+                switch (b.Name)
+                {
+                    case "LowWaterButton":
+                        amount = 125;
+                        break;
+                    case "MidWaterButton":
+                        amount = 250;
+                        break;
+                    case "HighWaterButton":
+                        amount = 500;
+                        break;
+                }
+                AddWaterConsumed(amount);
+            }
         }
     }
 }

@@ -144,9 +144,9 @@
                             <Label Content="Add consumed water" />
 
                             <UniformGrid Grid.Row="1" Columns="3" Height="30" >
-                                <Button Content="125 ml" />
-                                <Button Content="250 ml" />
-                                <Button Content="500 ml" />
+                                <Button x:Name="LowWaterButton" Content="125 ml" Click="AddWaterConsumedButton_Click"/>
+                                <Button x:Name="MidWaterButton" Content="250 ml" Click="AddWaterConsumedButton_Click"/>
+                                <Button x:Name="HighWaterButton" Content="500 ml" Click="AddWaterConsumedButton_Click"/>
                             </UniformGrid>
 
                         </Grid>
