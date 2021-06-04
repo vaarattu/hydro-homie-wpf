@@ -1,10 +1,13 @@
 ﻿using AdonisUI.Controls;
 using LiveCharts;
+using LiveCharts.Configurations;
+using LiveCharts.Defaults;
 using LiveCharts.Wpf;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -19,7 +22,7 @@ using System.Xml.Serialization;
 
 namespace HydroHomie
 {
-    public partial class MainWindow : AdonisWindow
+    public partial class MainWindow : AdonisWindow, INotifyPropertyChanged
     {
         readonly string[] alertTexts = { "Hydration alert!", "It's time to hydrate!", "Bottoms up!", "Stay hydrated!", "H20 time!", "Drink your favorite water!", "Take a sip!", "Aren't you thristy already?" };
 
@@ -30,12 +33,13 @@ namespace HydroHomie
         TimeSpan lastAlert;
 
         private readonly Settings _settings;
-        private readonly WaterConsumptionHistory _waterHistory;
+        private readonly List<WaterConsumptionHistory> _waterHistory;
         private bool allowEvents = false;
 
         public MainWindow()
         {
             InitializeComponent();
+            DataContext = this;
 
             soundPlayer = new SoundPlayer();
             mediaPlayer = new MediaPlayer();
@@ -59,41 +63,69 @@ namespace HydroHomie
             SetupTimer();
         }
 
+
+        private double _axisMax;
+        private double _axisMin;
+        public ChartValues<WaterConsumptionHistory> ChartValues { get; set; }
+        public Func<double, string> DateTimeFormatter { get; set; }
+        public double AxisStep { get; set; }
+        public double AxisUnit { get; set; }
+
         private void SetupChart()
         {
-            List<string> labels = new List<string>();
-            List<double> values = new List<double>();
+            var mapper = Mappers.Xy<WaterConsumptionHistory>().X(x => x.DateTime.Ticks).Y(y => y.Value);
+            Charting.For<WaterConsumptionHistory>(mapper);
 
-            foreach (var pair in _waterHistory.WaterConsumed)
-            {
-                labels.Add(pair.Key);
-                values.Add(pair.Value);
-            }
+            ChartValues = new ChartValues<WaterConsumptionHistory>();
 
-            LvcXAxis.Title = "Date";
-            LvcYAxis.Title = "Water consumed";
+            DateTimeFormatter = value => new DateTime((long)value).ToString("dd-MM-yyyy");
 
-            SeriesCollection SeriesCollection = new SeriesCollection
-            {
-                new ColumnSeries
-                {
-                    Values = new ChartValues<double>(values)
-                }
-            };
+            AxisStep = TimeSpan.FromSeconds(1).Ticks;
+            AxisUnit = TimeSpan.TicksPerSecond;
 
-            Func<double, string> Formatter = value => value.ToString();
-
-            LvcChart.Series = SeriesCollection;
-            LvcXAxis.Labels = labels;
-            LvcYAxis.LabelFormatter = Formatter;
-
-            AvgAxis.Value = values.Average();
-            LvcChart.Update();
+            SetAxisLimits(DateTime.Now);
         }
 
-        private void UpdateChart()
+        public double AxisMax
         {
-            var values = LvcChart.Series;
+            get { return _axisMax; }
+            set
+            {
+                _axisMax = value;
+                OnPropertyChanged("AxisMax");
+            }
+        }
+
+        public double AxisMin
+        {
+            get { return _axisMin; }
+            set
+            {
+                _axisMin = value;
+                OnPropertyChanged("AxisMin");
+            }
+        }
+
+        private void SetAxisLimits(DateTime now)
+        {
+            AxisMax = now.Ticks + TimeSpan.FromSeconds(1).Ticks;
+            AxisMin = now.Ticks - TimeSpan.FromSeconds(8).Ticks;
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected virtual void OnPropertyChanged(string propertyName = null)
+        {
+            if (PropertyChanged != null) PropertyChanged.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        private void UpdateChart(DateTime dateTime, int amount)
+        {
+            ChartValues.Add(new WaterConsumptionHistory
+            {
+                DateTime = dateTime,
+                Value = amount
+            });
+            SetAxisLimits(dateTime);
         }
 
         private string GetSettingsFilePath()
@@ -148,24 +180,24 @@ namespace HydroHomie
             wfile.Close();
         }
 
-        private WaterConsumptionHistory ReadWaterConsumedHistoryFile()
+        private List<WaterConsumptionHistory> ReadWaterConsumedHistoryFile()
         {
-            WaterConsumptionHistory history = new WaterConsumptionHistory();
+            List<WaterConsumptionHistory> history = new List<WaterConsumptionHistory>();
 
             if (File.Exists(GetWaterConsumedHistoryPath()))
             {
-                history = JsonConvert.DeserializeObject<WaterConsumptionHistory>(File.ReadAllText(GetWaterConsumedHistoryPath()));
+                history = JsonConvert.DeserializeObject<List<WaterConsumptionHistory>>(File.ReadAllText(GetWaterConsumedHistoryPath()));
             }
 
-            if (history.WaterConsumed == null)
+            if (history == null)
             {
-                history.WaterConsumed = new Dictionary<string, int>();
+                history = new List<WaterConsumptionHistory>();
             }
 
             return history;
         }
 
-        private void WriteWaterConsumedHistoryFile(WaterConsumptionHistory history)
+        private void WriteWaterConsumedHistoryFile(List<WaterConsumptionHistory> history)
         {
             File.WriteAllText(GetWaterConsumedHistoryPath(), JsonConvert.SerializeObject(history, Formatting.Indented));
         }
@@ -606,8 +638,8 @@ namespace HydroHomie
             }
             water *= 0.8;
             water -= 1;
-            GoalAxis.Visibility = water > 0 ? Visibility.Visible : Visibility.Collapsed;
-            GoalAxis.Value = water;
+            //GoalAxis.Visibility = water > 0 ? Visibility.Visible : Visibility.Collapsed;
+            //GoalAxis.Value = water;
         }
 
         private void UnitRadioButton_Checked(object sender, RoutedEventArgs e)
@@ -618,13 +650,14 @@ namespace HydroHomie
         private void AddWaterConsumed(int amountInMl)
         {
             string key = DateTime.Now.ToString("dd-MM-yyyy");
-            if (!_waterHistory.WaterConsumed.ContainsKey(key))
+            DateTime parsed = DateTime.Parse(key);
+            if (_waterHistory.Where(x => x.DateTime == parsed).Count() == 0)
             {
-                _waterHistory.WaterConsumed.Add(key, 0);
+                _waterHistory.Add(new WaterConsumptionHistory() { DateTime = parsed, Value = 0 });
             }
-            _waterHistory.WaterConsumed[key] += amountInMl;
+            _waterHistory.Where(x => x.DateTime == parsed).First().Value = amountInMl;
             WriteWaterConsumedHistoryFile(_waterHistory);
-            UpdateChart();
+            UpdateChart(parsed, amountInMl);
         }
 
         private void AddWaterConsumedButton_Click(object sender, RoutedEventArgs e)

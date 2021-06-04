@@ -152,6 +152,28 @@
                         </Grid>
 
                         <Grid Grid.Row="3">
+                            <lvc:CartesianChart AnimationsSpeed="0:0:0.5" Hoverable="False" DataTooltip="{x:Null}">
+                                <lvc:CartesianChart.Series>
+                                    <lvc:LineSeries Values="{Binding ChartValues}" 
+                                PointGeometry="{x:Null}" 
+                                LineSmoothness="1"
+                                StrokeThickness="6" 
+                                Stroke="#F34336"
+                                Fill="Transparent"/>
+                                </lvc:CartesianChart.Series>
+                                <lvc:CartesianChart.AxisX>
+                                    <lvc:Axis LabelFormatter="{Binding DateTimeFormatter}" 
+                          MaxValue="{Binding AxisMax}" 
+                          MinValue="{Binding AxisMin}"
+                          Unit="{Binding AxisUnit}">
+                                        <lvc:Axis.Separator>
+                                            <lvc:Separator Step="{Binding AxisStep}" />
+                                        </lvc:Axis.Separator>
+                                    </lvc:Axis>
+                                </lvc:CartesianChart.AxisX>
+                            </lvc:CartesianChart>
+
+                            <!--
                             <lvc:CartesianChart x:Name="LvcChart" Hoverable="False" Margin="0 8 0 0">
                                 <lvc:CartesianChart.DataTooltip>
                                     <lvc:DefaultTooltip Foreground="Black" ShowSeries="False"/>
@@ -168,6 +190,7 @@
                                     </lvc:Axis>
                                 </lvc:CartesianChart.AxisY>
                             </lvc:CartesianChart>
+                            -->
                         </Grid>
 
                     </Grid>
