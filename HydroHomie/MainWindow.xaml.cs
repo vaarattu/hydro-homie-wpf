@@ -1,13 +1,10 @@
 ﻿using AdonisUI.Controls;
 using LiveCharts;
 using LiveCharts.Configurations;
-using LiveCharts.Defaults;
-using LiveCharts.Wpf;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -22,7 +19,7 @@ using System.Xml.Serialization;
 
 namespace HydroHomie
 {
-    public partial class MainWindow : AdonisWindow, INotifyPropertyChanged
+    public partial class MainWindow : AdonisWindow
     {
         readonly string[] alertTexts = { "Hydration alert!", "It's time to hydrate!", "Bottoms up!", "Stay hydrated!", "H20 time!", "Drink your favorite water!", "Take a sip!", "Aren't you thristy already?" };
 
@@ -63,13 +60,7 @@ namespace HydroHomie
             SetupTimer();
         }
 
-
-        private double _axisMax;
-        private double _axisMin;
         public ChartValues<WaterConsumptionHistory> ChartValues { get; set; }
-        public Func<double, string> DateTimeFormatter { get; set; }
-        public double AxisStep { get; set; }
-        public double AxisUnit { get; set; }
 
         private void SetupChart()
         {
@@ -78,54 +69,40 @@ namespace HydroHomie
 
             ChartValues = new ChartValues<WaterConsumptionHistory>();
 
-            DateTimeFormatter = value => new DateTime((long)value).ToString("dd-MM-yyyy");
-
-            AxisStep = TimeSpan.FromSeconds(1).Ticks;
-            AxisUnit = TimeSpan.TicksPerSecond;
-
-            SetAxisLimits(DateTime.Now);
-        }
-
-        public double AxisMax
-        {
-            get { return _axisMax; }
-            set
+            foreach (var item in _waterHistory)
             {
-                _axisMax = value;
-                OnPropertyChanged("AxisMax");
+                ChartValues.Add(new WaterConsumptionHistory
+                {
+                    DateTime = item.DateTime,
+                    Value = item.Value
+                });
             }
-        }
 
-        public double AxisMin
-        {
-            get { return _axisMin; }
-            set
-            {
-                _axisMin = value;
-                OnPropertyChanged("AxisMin");
-            }
-        }
+            LvcSeries.Values = ChartValues;
 
-        private void SetAxisLimits(DateTime now)
-        {
-            AxisMax = now.Ticks + TimeSpan.FromSeconds(1).Ticks;
-            AxisMin = now.Ticks - TimeSpan.FromSeconds(8).Ticks;
-        }
+            LvcXAxis.LabelFormatter = value => new DateTime((long)value).ToString("dd-MM-yyyy");
 
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected virtual void OnPropertyChanged(string propertyName = null)
-        {
-            if (PropertyChanged != null) PropertyChanged.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            LvcAxisStep.Step = TimeSpan.FromSeconds(1).Ticks;
+            LvcXAxis.Unit = TimeSpan.TicksPerSecond;
+
+            LvcChart.Update();
         }
 
         private void UpdateChart(DateTime dateTime, int amount)
         {
-            ChartValues.Add(new WaterConsumptionHistory
+            if (ChartValues.Where(x => x.DateTime == dateTime).Count() > 0)
             {
-                DateTime = dateTime,
-                Value = amount
-            });
-            SetAxisLimits(dateTime);
+                ChartValues.Where(x => x.DateTime == dateTime).First().Value += amount;
+            }
+            else
+            {
+                ChartValues.Add(new WaterConsumptionHistory
+                {
+                    DateTime = dateTime,
+                    Value = amount
+                });
+            }
+            LvcChart.Update();
         }
 
         private string GetSettingsFilePath()
